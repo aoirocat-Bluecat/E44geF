@@ -138,7 +138,12 @@
       <div class="flex-1 overflow-y-auto p-3 space-y-4 no-scrollbar">
         <!-- Channels Section -->
         <div>
-          <div id="i18n-channels-header" class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">チャンネル</div>
+          <div class="flex items-center justify-between mb-2 px-3">
+            <span id="i18n-channels-header" class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider">チャンネル</span>
+            <button onclick="promptAddChannel()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold transition-colors" title="チャンネルを追加">
+              <i class="fas fa-plus"></i> <span id="i18n-add-channel-btn" class="hidden md:inline">追加</span>
+            </button>
+          </div>
           <ul id="room-list" class="space-y-1"></ul>
         </div>
 
@@ -186,7 +191,12 @@
             <i class="fas fa-hashtag text-lg" id="chat-header-icon"></i>
           </div>
           <div>
-            <h2 id="chat-title" class="text-lg md:text-xl font-bold text-gray-800 tracking-tight">ルームを選択</h2>
+            <div class="flex items-center gap-2">
+              <h2 id="chat-title" class="text-lg md:text-xl font-bold text-gray-800 tracking-tight">ルームを選択</h2>
+              <button id="rename-channel-btn" onclick="promptRenameChannel()" class="text-gray-400 hover:text-blue-600 transition-colors p-1 text-sm hidden" title="チャンネル名を変更">
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
             <p class="text-xs text-gray-400 font-medium" id="chat-subtitle">パブリックチャンネル</p>
           </div>
         </div>
@@ -299,7 +309,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Multilingual Dictionary
     const i18n = {
       ja: {
         authTitle: "Welcome to E44geF",
@@ -320,6 +329,7 @@
         channelsHeader: "チャンネル",
         contactsHeader: "連絡先",
         addBtn: "追加",
+        addChannelBtn: "追加",
         publicChannel: "パブリックチャンネル",
         directMessage: "ダイレクトメッセージ",
         noMessages: "メッセージがありません。会話を始めましょう！",
@@ -333,7 +343,8 @@
         audioCallTitle: "音声通話",
         videoCallTitle: "ビデオ通話",
         settingsTooltip: "設定",
-        logoutTooltip: "ログアウト"
+        logoutTooltip: "ログアウト",
+        renameChannelTooltip: "チャンネル名を変更"
       },
       en: {
         authTitle: "Welcome to E44geF",
@@ -354,6 +365,7 @@
         channelsHeader: "Channels",
         contactsHeader: "Contacts",
         addBtn: "Add",
+        addChannelBtn: "Add",
         publicChannel: "Public Channel",
         directMessage: "Direct Message",
         noMessages: "No messages yet. Start the conversation!",
@@ -367,7 +379,8 @@
         audioCallTitle: "Audio Call",
         videoCallTitle: "Video Call",
         settingsTooltip: "Settings",
-        logoutTooltip: "Log Out"
+        logoutTooltip: "Log Out",
+        renameChannelTooltip: "Rename Channel"
       }
     };
 
@@ -397,6 +410,7 @@
       sendBtn: document.getElementById('send-btn'),
       videoCallBtn: document.getElementById('video-call-btn'),
       audioCallBtn: document.getElementById('audio-call-btn'),
+      renameChannelBtn: document.getElementById('rename-channel-btn'),
       
       callModal: document.getElementById('call-modal'),
       localVideo: document.getElementById('local-video'),
@@ -415,15 +429,12 @@
 
     let currentUser = null;
     let currentRoomId = 'general';
-    let currentRoomType = 'channel'; // 'channel' or 'dm'
+    let currentRoomType = 'channel';
     let currentDisplayName = '';
     let authMode = 'login';
     
-    const rooms = [
-      { id: 'general', name: { ja: 'General Lounge', en: 'General Lounge' }, icon: 'fa-globe' },
-      { id: 'tech', name: { ja: 'Tech Talk', en: 'Tech Talk' }, icon: 'fa-laptop-code' },
-      { id: 'random', name: { ja: 'Random Break', en: 'Random Break' }, icon: 'fa-coffee' }
-    ];
+    let dbChannels = [];
+    let rooms = [];
     let allMessages = [];
     let myContacts = [];
 
@@ -438,6 +449,43 @@
     const rtcConfig = {
       iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }]
     };
+
+    function updateRoomsList() {
+      const defaultRooms = [
+        { id: 'general', defaultName: { ja: '一般ラウンジ', en: 'General Lounge' }, icon: 'fa-globe' },
+        { id: 'tech', defaultName: { ja: '技術トーク', en: 'Tech Talk' }, icon: 'fa-laptop-code' },
+        { id: 'random', defaultName: { ja: '雑談・休憩', en: 'Random Break' }, icon: 'fa-coffee' }
+      ];
+
+      rooms = defaultRooms.map(def => {
+        const custom = dbChannels.find(c => c.id === def.id);
+        return {
+          id: def.id,
+          name: custom ? custom.name : def.defaultName[currentLang] || def.defaultName.ja,
+          icon: def.icon
+        };
+      });
+
+      dbChannels.forEach(dbc => {
+        if (!rooms.some(r => r.id === dbc.id)) {
+          rooms.push({
+            id: dbc.id,
+            name: dbc.name,
+            icon: dbc.icon || 'fa-hashtag'
+          });
+        }
+      });
+
+      renderRoomList();
+      
+      if (currentRoomType === 'channel') {
+        const roomInfo = rooms.find(r => r.id === currentRoomId);
+        if (roomInfo) {
+          dom.chatTitle.innerText = roomInfo.name;
+          dom.callRoomDisplay.innerText = roomInfo.name;
+        }
+      }
+    }
 
     function applyLanguage(lang) {
       currentLang = lang;
@@ -463,6 +511,7 @@
       document.getElementById('i18n-channels-header').innerText = t.channelsHeader;
       document.getElementById('i18n-contacts-header').innerText = t.contactsHeader;
       document.getElementById('i18n-add-btn').innerText = t.addBtn;
+      document.getElementById('i18n-add-channel-btn').innerText = t.addChannelBtn;
 
       dom.messageInput.placeholder = t.inputPlaceholder;
       document.getElementById('i18n-waiting-video').innerText = t.waitingVideo;
@@ -471,25 +520,67 @@
 
       dom.audioCallBtn.title = t.audioCallTitle;
       dom.videoCallBtn.title = t.videoCallTitle;
+      dom.renameChannelBtn.title = t.renameChannelTooltip;
       document.getElementById('btn-settings-tooltip').title = t.settingsTooltip;
       document.getElementById('btn-logout-tooltip').title = t.logoutTooltip;
 
       dom.settingsLanguageSelect.value = lang;
 
-      renderRoomList();
+      updateRoomsList();
       renderContactList();
       renderMessages();
-      
+
       if (currentRoomType === 'channel') {
-        const roomInfo = rooms.find(r => r.id === currentRoomId);
-        if (roomInfo) {
-          dom.chatTitle.innerText = roomInfo.name[lang] || roomInfo.name.ja;
-          dom.chatSubtitle.innerText = t.publicChannel;
-        }
+        dom.chatSubtitle.innerText = t.publicChannel;
       } else {
         dom.chatSubtitle.innerText = t.directMessage;
       }
     }
+
+    window.promptAddChannel = async function() {
+      const promptMsg = currentLang === 'ja' ? "新しいチャンネル名を入力してください（日本語OK）:" : "Enter new channel name:";
+      const channelName = prompt(promptMsg);
+      if (!channelName || !channelName.trim()) return;
+
+      const trimmed = channelName.trim();
+      const channelId = 'channel_' + Date.now();
+
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'channels', channelId), {
+          id: channelId,
+          name: trimmed,
+          icon: 'fa-hashtag',
+          createdAt: Date.now()
+        });
+        selectRoom(channelId, 'channel');
+      } catch (e) {
+        console.error(e);
+        alert(currentLang === 'ja' ? "チャンネルの追加に失敗しました。" : "Failed to create channel.");
+      }
+    };
+
+    window.promptRenameChannel = async function() {
+      if (currentRoomType !== 'channel') return;
+      const room = rooms.find(r => r.id === currentRoomId);
+      const currentName = room ? room.name : '';
+
+      const promptMsg = currentLang === 'ja' ? "変更後のチャンネル名を入力してください:" : "Enter new name for this channel:";
+      const newName = prompt(promptMsg, currentName);
+      if (!newName || !newName.trim() || newName.trim() === currentName) return;
+
+      const trimmed = newName.trim();
+
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'channels', currentRoomId), {
+          id: currentRoomId,
+          name: trimmed,
+          updatedAt: Date.now()
+        }, { merge: true });
+      } catch (e) {
+        console.error(e);
+        alert(currentLang === 'ja' ? "チャンネル名の変更に失敗しました。" : "Failed to rename channel.");
+      }
+    };
 
     window.switchAuthTab = function(mode) {
       authMode = mode;
@@ -658,9 +749,8 @@
         dom.loadingOverlay.style.opacity = '0';
         setTimeout(() => dom.loadingOverlay.classList.add('hidden'), 500);
         
-        renderRoomList();
-        selectRoom('general', 'channel');
         setupRealtimeListeners();
+        selectRoom('general', 'channel');
       } else {
         dom.loadingOverlay.classList.add('hidden');
       }
@@ -671,13 +761,12 @@
       rooms.forEach(room => {
         const li = document.createElement('li');
         const isActive = currentRoomType === 'channel' && room.id === currentRoomId;
-        const roomName = room.name[currentLang] || room.name.ja;
         li.className = `p-3 rounded-xl cursor-pointer flex items-center transition-all duration-200 mx-2 ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`;
         li.innerHTML = `
           <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${isActive ? 'bg-white/20' : 'bg-gray-800'}">
             <i class="fas ${room.icon} text-sm"></i>
           </div>
-          <span class="font-medium text-sm md:text-base ${isActive ? '' : 'hidden md:inline'} truncate">${roomName}</span>
+          <span class="font-medium text-sm md:text-base ${isActive ? '' : 'hidden md:inline'} truncate">${room.name}</span>
         `;
         li.onclick = () => selectRoom(room.id, 'channel');
         dom.roomList.appendChild(li);
@@ -722,16 +811,18 @@
 
       if (type === 'channel') {
         const roomInfo = rooms.find(r => r.id === roomId);
-        const name = roomInfo ? (roomInfo.name[currentLang] || roomInfo.name.ja) : roomId;
+        const name = roomInfo ? roomInfo.name : roomId;
         dom.chatTitle.innerText = name;
         dom.chatSubtitle.innerText = t.publicChannel;
-        dom.chatHeaderIcon.className = "fas " + roomInfo.icon + " text-lg";
+        dom.chatHeaderIcon.className = "fas " + (roomInfo ? roomInfo.icon : 'fa-hashtag') + " text-lg";
         dom.callRoomDisplay.innerText = name;
+        dom.renameChannelBtn.classList.remove('hidden');
       } else {
         dom.chatTitle.innerText = dmPartnerName;
         dom.chatSubtitle.innerText = t.directMessage;
         dom.chatHeaderIcon.className = "fas fa-user text-lg";
         dom.callRoomDisplay.innerText = `DM with ${dmPartnerName}`;
+        dom.renameChannelBtn.classList.add('hidden');
       }
 
       renderMessages();
@@ -809,18 +900,28 @@
     });
 
     function setupRealtimeListeners() {
+      // Channels listener
+      const channelsRef = collection(db, 'artifacts', appId, 'public', 'data', 'channels');
+      onSnapshot(channelsRef, (snapshot) => {
+        dbChannels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateRoomsList();
+      });
+
+      // Messages listener
       const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
       onSnapshot(messagesRef, (snapshot) => {
         allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderMessages();
       });
 
+      // Contacts listener
       const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid, 'contacts');
       onSnapshot(contactsRef, (snapshot) => {
         myContacts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderContactList();
       });
 
+      // ICE Candidates listener
       const candidatesRef = collection(db, 'artifacts', appId, 'public', 'data', 'candidates');
       onSnapshot(candidatesRef, (snapshot) => {
         snapshot.docChanges().forEach(change => {
