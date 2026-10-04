@@ -43,8 +43,8 @@
         <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/30">
           <i class="fas fa-bolt text-white text-2xl"></i>
         </div>
-        <h2 class="text-2xl font-black text-gray-800 tracking-tight">Welcome to E44geF</h2>
-        <p class="text-sm text-gray-500 mt-1">ログイン方法を選んでください</p>
+        <h2 id="i18n-auth-title" class="text-2xl font-black text-gray-800 tracking-tight">Welcome to E44geF</h2>
+        <p id="i18n-auth-sub" class="text-sm text-gray-500 mt-1">ログイン方法を選んでください</p>
       </div>
 
       <!-- Tab selector -->
@@ -56,11 +56,11 @@
       <!-- Form -->
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">メールアドレス</label>
+          <label id="i18n-email-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">メールアドレス</label>
           <input type="email" id="auth-email" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" placeholder="your@email.com">
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">パスワード</label>
+          <label id="i18n-password-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">パスワード</label>
           <input type="password" id="auth-password" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" placeholder="••••••••">
         </div>
         
@@ -73,12 +73,12 @@
 
       <div class="relative flex py-4 items-center">
         <div class="flex-grow border-t border-gray-200"></div>
-        <span class="flex-shrink mx-4 text-gray-400 text-xs uppercase tracking-wider">または</span>
+        <span id="i18n-or-text" class="flex-shrink mx-4 text-gray-400 text-xs uppercase tracking-wider">または</span>
         <div class="flex-grow border-t border-gray-200"></div>
       </div>
 
-      <button onclick="handleAnonymousAuth()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-sm flex items-center justify-center">
-        <i class="fas fa-user-secret mr-2"></i> ゲストとしてすぐ始める
+      <button id="guest-login-btn" onclick="handleAnonymousAuth()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-sm flex items-center justify-center">
+        <i class="fas fa-user-secret mr-2"></i> <span id="i18n-guest-btn">ゲストとしてすぐ始める</span>
       </button>
     </div>
   </div>
@@ -87,18 +87,26 @@
   <div id="settings-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-md z-[70] hidden flex items-center justify-center transition-opacity duration-300 opacity-0">
     <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 relative">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-xl font-bold text-gray-800"><i class="fas fa-cog mr-2 text-blue-600"></i> アカウント設定</h3>
+        <h3 id="i18n-settings-title" class="text-xl font-bold text-gray-800"><i class="fas fa-cog mr-2 text-blue-600"></i> アカウント設定</h3>
         <button onclick="toggleSettingsModal(false)" class="text-gray-400 hover:text-gray-600 p-2"><i class="fas fa-times text-lg"></i></button>
       </div>
       
       <div class="space-y-5">
         <div>
-          <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">表示名（ニックネーム）</label>
+          <label id="i18n-username-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">表示名（ニックネーム）</label>
           <input type="text" id="settings-username-input" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="あなたの名前">
-          <p class="text-xs text-gray-400 mt-1">他の人があなたを追加するときに使う名前です。</p>
+          <p id="i18n-username-hint" class="text-xs text-gray-400 mt-1">他の人があなたを追加するときに使う名前です。</p>
         </div>
 
-        <button onclick="saveSettings()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-600/30 transition-all text-sm">
+        <div>
+          <label id="i18n-language-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">言語 / Language</label>
+          <select id="settings-language-select" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white cursor-pointer">
+            <option value="ja">日本語 (Japanese)</option>
+            <option value="en">English (英語)</option>
+          </select>
+        </div>
+
+        <button id="i18n-save-btn" onclick="saveSettings()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-600/30 transition-all text-sm">
           保存する
         </button>
       </div>
@@ -112,7 +120,7 @@
       <div class="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
       <div class="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
     </div>
-    <p class="mt-6 text-gray-500 font-medium tracking-widest text-sm uppercase">Connecting...</p>
+    <p id="i18n-loading-text" class="mt-6 text-gray-500 font-medium tracking-widest text-sm uppercase">Connecting...</p>
   </div>
 
   <!-- Main Application Layout -->
@@ -130,16 +138,16 @@
       <div class="flex-1 overflow-y-auto p-3 space-y-4 no-scrollbar">
         <!-- Channels Section -->
         <div>
-          <div class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">Channels</div>
+          <div id="i18n-channels-header" class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">チャンネル</div>
           <ul id="room-list" class="space-y-1"></ul>
         </div>
 
         <!-- Contacts Section (Added Users) -->
         <div>
           <div class="flex items-center justify-between mb-2 px-3">
-            <span class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider">Contacts</span>
+            <span id="i18n-contacts-header" class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider">連絡先</span>
             <button onclick="promptAddContact()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold transition-colors" title="ユーザーを追加">
-              <i class="fas fa-user-plus"></i> <span class="hidden md:inline">追加</span>
+              <i class="fas fa-user-plus"></i> <span id="i18n-add-btn" class="hidden md:inline">追加</span>
             </button>
           </div>
           <ul id="contact-list" class="space-y-1"></ul>
@@ -158,10 +166,10 @@
           </div>
         </div>
         <div class="hidden md:flex items-center space-x-1">
-          <button onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-white p-2 transition-colors" title="設定">
+          <button id="btn-settings-tooltip" onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-white p-2 transition-colors" title="設定">
             <i class="fas fa-cog"></i>
           </button>
-          <button onclick="logout()" class="text-gray-400 hover:text-red-400 p-2 transition-colors" title="ログアウト">
+          <button id="btn-logout-tooltip" onclick="logout()" class="text-gray-400 hover:text-red-400 p-2 transition-colors" title="ログアウト">
             <i class="fas fa-sign-out-alt"></i>
           </button>
         </div>
@@ -178,8 +186,8 @@
             <i class="fas fa-hashtag text-lg" id="chat-header-icon"></i>
           </div>
           <div>
-            <h2 id="chat-title" class="text-lg md:text-xl font-bold text-gray-800 tracking-tight">Select a room</h2>
-            <p class="text-xs text-gray-400 font-medium" id="chat-subtitle">Public channel</p>
+            <h2 id="chat-title" class="text-lg md:text-xl font-bold text-gray-800 tracking-tight">ルームを選択</h2>
+            <p class="text-xs text-gray-400 font-medium" id="chat-subtitle">パブリックチャンネル</p>
           </div>
         </div>
         
@@ -196,7 +204,7 @@
       <!-- Messages Area -->
       <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-gray-50/50">
         <div class="flex h-full items-center justify-center opacity-50">
-          <p class="text-sm font-medium">No messages yet. Start the conversation!</p>
+          <p id="i18n-no-messages-initial" class="text-sm font-medium">メッセージがありません。会話を始めましょう！</p>
         </div>
       </div>
 
@@ -206,7 +214,7 @@
           <button class="p-3 text-gray-400 hover:text-blue-500 transition-colors focus:outline-none">
             <i class="fas fa-plus-circle text-xl"></i>
           </button>
-          <textarea id="message-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 resize-none p-3 max-h-32 text-gray-700 placeholder-gray-400 outline-none" placeholder="Type a message..."></textarea>
+          <textarea id="message-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 resize-none p-3 max-h-32 text-gray-700 placeholder-gray-400 outline-none" placeholder="メッセージを入力..."></textarea>
           <button id="send-btn" class="p-3 mb-0.5 mr-0.5 text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors focus:outline-none shadow-sm flex items-center justify-center w-10 h-10 shrink-0">
             <i class="fas fa-paper-plane text-sm"></i>
           </button>
@@ -223,7 +231,7 @@
          <div class="w-32 h-32 bg-gray-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
            <i class="fas fa-user text-5xl opacity-50"></i>
          </div>
-         <p class="text-xl tracking-wider font-light animate-pulse">Waiting for remote video...</p>
+         <p id="i18n-waiting-video" class="text-xl tracking-wider font-light animate-pulse">相手の映像を待っています...</p>
       </div>
       <div class="absolute bottom-6 right-6 md:bottom-10 md:right-10 w-28 h-40 md:w-48 md:h-72 bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl z-10">
         <video id="local-video" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
@@ -232,7 +240,7 @@
         <div class="text-white">
           <div class="flex items-center gap-3 mb-1">
             <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-            <h2 class="text-xl md:text-2xl font-bold tracking-tight">Active Call</h2>
+            <h2 id="i18n-active-call" class="text-xl md:text-2xl font-bold tracking-tight">通話中</h2>
           </div>
           <p class="opacity-70 text-sm md:text-base font-medium flex items-center gap-2">
             <i class="fas fa-hashtag text-xs"></i> <span id="call-room-display">Room Name</span>
@@ -257,8 +265,8 @@
       <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-500/30 relative">
         <i class="fas fa-phone-volume text-4xl text-white animate-pulse"></i>
       </div>
-      <h3 class="text-2xl font-bold mb-2 text-gray-800 tracking-tight">Incoming Call</h3>
-      <p class="text-gray-500 mb-8 font-medium bg-gray-100 inline-block px-4 py-1.5 rounded-full" id="incoming-room-name">From: Room Name</p>
+      <h3 id="i18n-incoming-call" class="text-2xl font-bold mb-2 text-gray-800 tracking-tight">着信中</h3>
+      <p class="text-gray-500 mb-8 font-medium bg-gray-100 inline-block px-4 py-1.5 rounded-full" id="incoming-room-name">発信元: Room Name</p>
       
       <div class="flex justify-center space-x-8">
         <button id="reject-call-btn" class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 shadow-lg shadow-red-500/30 transition-transform transform hover:-translate-y-1">
@@ -291,6 +299,80 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
+    // Multilingual Dictionary
+    const i18n = {
+      ja: {
+        authTitle: "Welcome to E44geF",
+        authSub: "ログイン方法を選んでください",
+        tabLogin: "ログイン",
+        tabRegister: "新規登録",
+        emailLabel: "メールアドレス",
+        passwordLabel: "パスワード",
+        loginBtn: "ログインする",
+        registerBtn: "アカウントを作成",
+        orText: "または",
+        guestBtn: "ゲストとしてすぐ始める",
+        settingsTitle: "アカウント設定",
+        usernameLabel: "表示名（ニックネーム）",
+        usernameHint: "他の人があなたを追加するときに使う名前です。",
+        languageLabel: "言語 / Language",
+        saveBtn: "保存する",
+        channelsHeader: "チャンネル",
+        contactsHeader: "連絡先",
+        addBtn: "追加",
+        publicChannel: "パブリックチャンネル",
+        directMessage: "ダイレクトメッセージ",
+        noMessages: "メッセージがありません。会話を始めましょう！",
+        inputPlaceholder: "メッセージを入力...",
+        waitingVideo: "相手の映像を待っています...",
+        activeCall: "通話中",
+        incomingCall: "着信中",
+        fromCall: "発信元:",
+        selectRoom: "ルームを選択",
+        noContacts: "連絡先がありません",
+        audioCallTitle: "音声通話",
+        videoCallTitle: "ビデオ通話",
+        settingsTooltip: "設定",
+        logoutTooltip: "ログアウト"
+      },
+      en: {
+        authTitle: "Welcome to E44geF",
+        authSub: "Choose a login method",
+        tabLogin: "Log In",
+        tabRegister: "Register",
+        emailLabel: "Email Address",
+        passwordLabel: "Password",
+        loginBtn: "Log In",
+        registerBtn: "Create Account",
+        orText: "OR",
+        guestBtn: "Continue as Guest",
+        settingsTitle: "Account Settings",
+        usernameLabel: "Display Name",
+        usernameHint: "This name will be visible to other users when adding you.",
+        languageLabel: "Language / 言語",
+        saveBtn: "Save Settings",
+        channelsHeader: "Channels",
+        contactsHeader: "Contacts",
+        addBtn: "Add",
+        publicChannel: "Public Channel",
+        directMessage: "Direct Message",
+        noMessages: "No messages yet. Start the conversation!",
+        inputPlaceholder: "Type a message...",
+        waitingVideo: "Waiting for remote video...",
+        activeCall: "Active Call",
+        incomingCall: "Incoming Call",
+        fromCall: "From:",
+        selectRoom: "Select a room",
+        noContacts: "No contacts yet",
+        audioCallTitle: "Audio Call",
+        videoCallTitle: "Video Call",
+        settingsTooltip: "Settings",
+        logoutTooltip: "Log Out"
+      }
+    };
+
+    let currentLang = localStorage.getItem('e44gef_lang') || 'ja';
+
     const dom = {
       authModal: document.getElementById('auth-modal'),
       authEmail: document.getElementById('auth-email'),
@@ -302,6 +384,7 @@
       
       settingsModal: document.getElementById('settings-modal'),
       settingsUsernameInput: document.getElementById('settings-username-input'),
+      settingsLanguageSelect: document.getElementById('settings-language-select'),
       
       loadingOverlay: document.getElementById('loading-overlay'),
       roomList: document.getElementById('room-list'),
@@ -337,9 +420,9 @@
     let authMode = 'login';
     
     const rooms = [
-      { id: 'general', name: 'General Lounge', icon: 'fa-globe' },
-      { id: 'tech', name: 'Tech Talk', icon: 'fa-laptop-code' },
-      { id: 'random', name: 'Random Break', icon: 'fa-coffee' }
+      { id: 'general', name: { ja: 'General Lounge', en: 'General Lounge' }, icon: 'fa-globe' },
+      { id: 'tech', name: { ja: 'Tech Talk', en: 'Tech Talk' }, icon: 'fa-laptop-code' },
+      { id: 'random', name: { ja: 'Random Break', en: 'Random Break' }, icon: 'fa-coffee' }
     ];
     let allMessages = [];
     let myContacts = [];
@@ -356,17 +439,70 @@
       iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }]
     };
 
+    function applyLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('e44gef_lang', lang);
+      const t = i18n[lang];
+
+      document.getElementById('i18n-auth-title').innerText = t.authTitle;
+      document.getElementById('i18n-auth-sub').innerText = t.authSub;
+      dom.tabLoginBtn.innerText = t.tabLogin;
+      dom.tabRegisterBtn.innerText = t.tabRegister;
+      document.getElementById('i18n-email-label').innerText = t.emailLabel;
+      document.getElementById('i18n-password-label').innerText = t.passwordLabel;
+      dom.authSubmitBtn.innerText = authMode === 'login' ? t.loginBtn : t.registerBtn;
+      document.getElementById('i18n-or-text').innerText = t.orText;
+      document.getElementById('i18n-guest-btn').innerText = t.guestBtn;
+
+      document.getElementById('i18n-settings-title').innerHTML = `<i class="fas fa-cog mr-2 text-blue-600"></i> ${t.settingsTitle}`;
+      document.getElementById('i18n-username-label').innerText = t.usernameLabel;
+      document.getElementById('i18n-username-hint').innerText = t.usernameHint;
+      document.getElementById('i18n-language-label').innerText = t.languageLabel;
+      document.getElementById('i18n-save-btn').innerText = t.saveBtn;
+
+      document.getElementById('i18n-channels-header').innerText = t.channelsHeader;
+      document.getElementById('i18n-contacts-header').innerText = t.contactsHeader;
+      document.getElementById('i18n-add-btn').innerText = t.addBtn;
+
+      dom.messageInput.placeholder = t.inputPlaceholder;
+      document.getElementById('i18n-waiting-video').innerText = t.waitingVideo;
+      document.getElementById('i18n-active-call').innerText = t.activeCall;
+      document.getElementById('i18n-incoming-call').innerText = t.incomingCall;
+
+      dom.audioCallBtn.title = t.audioCallTitle;
+      dom.videoCallBtn.title = t.videoCallTitle;
+      document.getElementById('btn-settings-tooltip').title = t.settingsTooltip;
+      document.getElementById('btn-logout-tooltip').title = t.logoutTooltip;
+
+      dom.settingsLanguageSelect.value = lang;
+
+      renderRoomList();
+      renderContactList();
+      renderMessages();
+      
+      if (currentRoomType === 'channel') {
+        const roomInfo = rooms.find(r => r.id === currentRoomId);
+        if (roomInfo) {
+          dom.chatTitle.innerText = roomInfo.name[lang] || roomInfo.name.ja;
+          dom.chatSubtitle.innerText = t.publicChannel;
+        }
+      } else {
+        dom.chatSubtitle.innerText = t.directMessage;
+      }
+    }
+
     window.switchAuthTab = function(mode) {
       authMode = mode;
       dom.authErrorMsg.classList.add('hidden');
+      const t = i18n[currentLang];
       if (mode === 'login') {
         dom.tabLoginBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg bg-white shadow-sm text-blue-600 transition-all";
         dom.tabRegisterBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-gray-500 transition-all";
-        dom.authSubmitBtn.innerText = "ログインする";
+        dom.authSubmitBtn.innerText = t.loginBtn;
       } else {
         dom.tabRegisterBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg bg-white shadow-sm text-blue-600 transition-all";
         dom.tabLoginBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-gray-500 transition-all";
-        dom.authSubmitBtn.innerText = "アカウントを作成";
+        dom.authSubmitBtn.innerText = t.registerBtn;
       }
     };
 
@@ -374,11 +510,11 @@
       const email = dom.authEmail.value.trim();
       const password = dom.authPassword.value;
       if (!email || !password) {
-        showAuthError("メールアドレスとパスワードを入力してください");
+        showAuthError(currentLang === 'ja' ? "メールアドレスとパスワードを入力してください" : "Please enter email and password");
         return;
       }
       try {
-        dom.authSubmitBtn.innerText = "処理中...";
+        dom.authSubmitBtn.innerText = currentLang === 'ja' ? "処理中..." : "Processing...";
         if (authMode === 'login') {
           await signInWithEmailAndPassword(auth, email, password);
         } else {
@@ -387,7 +523,7 @@
       } catch (error) {
         console.error(error);
         showAuthError(error.message);
-        dom.authSubmitBtn.innerText = authMode === 'login' ? "ログインする" : "アカウントを作成";
+        dom.authSubmitBtn.innerText = authMode === 'login' ? i18n[currentLang].loginBtn : i18n[currentLang].registerBtn;
       }
     };
 
@@ -396,7 +532,7 @@
         await signInAnonymously(auth);
       } catch (error) {
         console.error(error);
-        showAuthError("ゲストログインに失敗しました");
+        showAuthError(currentLang === 'ja' ? "ゲストログインに失敗しました" : "Failed guest login");
       }
     };
 
@@ -408,6 +544,7 @@
     window.toggleSettingsModal = function(show) {
       if (show) {
         dom.settingsUsernameInput.value = currentDisplayName;
+        dom.settingsLanguageSelect.value = currentLang;
         dom.settingsModal.classList.remove('hidden');
         dom.settingsModal.classList.add('flex');
         setTimeout(() => dom.settingsModal.classList.remove('opacity-0'), 50);
@@ -419,6 +556,7 @@
 
     window.saveSettings = async function() {
       const newName = dom.settingsUsernameInput.value.trim();
+      const selectedLang = dom.settingsLanguageSelect.value;
       if (!newName || !currentUser) return;
       
       try {
@@ -430,26 +568,27 @@
         
         currentDisplayName = newName;
         dom.userNameDisplay.innerText = newName;
+        
+        applyLanguage(selectedLang);
         toggleSettingsModal(false);
       } catch(e) {
         console.error(e);
-        alert('保存に失敗しました');
+        alert(currentLang === 'ja' ? '保存に失敗しました' : 'Failed to save settings');
       }
     };
 
-    // Add Contact prompt function
     window.promptAddContact = async function() {
-      const targetName = prompt("追加したい相手の「ユーザーネーム（表示名）」を入力してください:");
+      const promptMsg = currentLang === 'ja' ? "追加したい相手の「ユーザーネーム（表示名）」を入力してください:" : "Enter the username (display name) of the user to add:";
+      const targetName = prompt(promptMsg);
       if (!targetName || !targetName.trim()) return;
 
       const searchName = targetName.trim();
       if (searchName === currentDisplayName) {
-        alert("自分自身を追加することはできません。");
+        alert(currentLang === 'ja' ? "自分自身を追加することはできません。" : "You cannot add yourself.");
         return;
       }
 
       try {
-        // Search user by displayName in Firestore users collection
         const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
         const snapshot = await getDocs(usersRef);
         let foundUser = null;
@@ -462,27 +601,27 @@
         });
 
         if (!foundUser) {
-          alert(`「${searchName}」というユーザーが見つかりませんでした。\n相手が一度アプリにログインしているか確認してください。`);
+          alert(currentLang === 'ja' 
+            ? `「${searchName}」というユーザーが見つかりませんでした。\n相手が一度アプリにログインしているか確認してください。` 
+            : `User "${searchName}" was not found.`);
           return;
         }
 
-        // Check if already in contacts
         if (myContacts.some(c => c.uid === foundUser.uid)) {
-          alert("すでに連絡先に追加されています。");
+          alert(currentLang === 'ja' ? "すでに連絡先に追加されています。" : "Already added to contacts.");
           return;
         }
 
-        // Save to Firestore contacts subcollection
         await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid, 'contacts'), {
           uid: foundUser.uid,
           displayName: foundUser.displayName,
           addedAt: Date.now()
         });
 
-        alert(`「${foundUser.displayName}」さんを連絡先に追加しました！`);
+        alert(currentLang === 'ja' ? `「${foundUser.displayName}」さんを連絡先に追加しました！` : `Added "${foundUser.displayName}" to contacts!`);
       } catch (e) {
         console.error(e);
-        alert("ユーザーの追加に失敗しました。");
+        alert(currentLang === 'ja' ? "ユーザーの追加に失敗しました。" : "Failed to add user.");
       }
     };
 
@@ -492,6 +631,7 @@
     }
 
     onAuthStateChanged(auth, async (user) => {
+      applyLanguage(currentLang);
       if (user) {
         currentUser = user;
         
@@ -531,12 +671,13 @@
       rooms.forEach(room => {
         const li = document.createElement('li');
         const isActive = currentRoomType === 'channel' && room.id === currentRoomId;
+        const roomName = room.name[currentLang] || room.name.ja;
         li.className = `p-3 rounded-xl cursor-pointer flex items-center transition-all duration-200 mx-2 ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`;
         li.innerHTML = `
           <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${isActive ? 'bg-white/20' : 'bg-gray-800'}">
             <i class="fas ${room.icon} text-sm"></i>
           </div>
-          <span class="font-medium text-sm md:text-base ${isActive ? '' : 'hidden md:inline'} truncate">${room.name}</span>
+          <span class="font-medium text-sm md:text-base ${isActive ? '' : 'hidden md:inline'} truncate">${roomName}</span>
         `;
         li.onclick = () => selectRoom(room.id, 'channel');
         dom.roomList.appendChild(li);
@@ -547,7 +688,7 @@
       dom.contactList.innerHTML = '';
       
       if (myContacts.length === 0) {
-        dom.contactList.innerHTML = `<li class="px-3 text-xs text-gray-500 italic">連絡先がありません</li>`;
+        dom.contactList.innerHTML = `<li class="px-3 text-xs text-gray-500 italic">${i18n[currentLang].noContacts}</li>`;
         return;
       }
 
@@ -577,15 +718,18 @@
       renderRoomList();
       renderContactList();
 
+      const t = i18n[currentLang];
+
       if (type === 'channel') {
         const roomInfo = rooms.find(r => r.id === roomId);
-        dom.chatTitle.innerText = roomInfo.name;
-        dom.chatSubtitle.innerText = "Public channel";
+        const name = roomInfo ? (roomInfo.name[currentLang] || roomInfo.name.ja) : roomId;
+        dom.chatTitle.innerText = name;
+        dom.chatSubtitle.innerText = t.publicChannel;
         dom.chatHeaderIcon.className = "fas " + roomInfo.icon + " text-lg";
-        dom.callRoomDisplay.innerText = roomInfo.name;
+        dom.callRoomDisplay.innerText = name;
       } else {
         dom.chatTitle.innerText = dmPartnerName;
-        dom.chatSubtitle.innerText = "Direct Message";
+        dom.chatSubtitle.innerText = t.directMessage;
         dom.chatHeaderIcon.className = "fas fa-user text-lg";
         dom.callRoomDisplay.innerText = `DM with ${dmPartnerName}`;
       }
@@ -604,7 +748,7 @@
         dom.chatMessages.innerHTML = `
           <div class="flex h-full flex-col items-center justify-center opacity-40">
             <i class="fas fa-comments text-5xl mb-4"></i>
-            <p class="text-sm font-medium">It's quiet here. Send a message to start!</p>
+            <p class="text-sm font-medium">${i18n[currentLang].noMessages}</p>
           </div>
         `;
         return;
@@ -665,21 +809,18 @@
     });
 
     function setupRealtimeListeners() {
-      // Messages listener
       const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
       onSnapshot(messagesRef, (snapshot) => {
         allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderMessages();
       });
 
-      // Contacts listener for current user
       const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid, 'contacts');
       onSnapshot(contactsRef, (snapshot) => {
         myContacts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderContactList();
       });
 
-      // Candidates listener
       const candidatesRef = collection(db, 'artifacts', appId, 'public', 'data', 'candidates');
       onSnapshot(candidatesRef, (snapshot) => {
         snapshot.docChanges().forEach(change => {
@@ -833,7 +974,7 @@
 
     function showIncomingCallModal(callerName) {
       if (dom.incomingCallModal.classList.contains('flex')) return;
-      dom.incomingRoomName.innerText = `From: ${callerName}`;
+      dom.incomingRoomName.innerText = `${i18n[currentLang].fromCall} ${callerName}`;
       dom.incomingCallModal.classList.remove('hidden');
       dom.incomingCallModal.classList.add('flex');
       setTimeout(() => dom.incomingCallModal.classList.remove('opacity-0'), 50);
