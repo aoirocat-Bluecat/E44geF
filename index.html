@@ -85,17 +85,31 @@
 
   <!-- Settings Modal -->
   <div id="settings-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-md z-[70] hidden flex items-center justify-center transition-opacity duration-300 opacity-0">
-    <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 relative">
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 relative max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h3 id="i18n-settings-title" class="text-xl font-bold text-gray-800"><i class="fas fa-cog mr-2 text-blue-600"></i> アカウント設定</h3>
         <button onclick="toggleSettingsModal(false)" class="text-gray-400 hover:text-gray-600 p-2"><i class="fas fa-times text-lg"></i></button>
       </div>
       
       <div class="space-y-5">
+        <!-- Icon Selector -->
+        <div>
+          <label id="i18n-avatar-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">アイコンを選択</label>
+          <div id="avatar-grid" class="grid grid-cols-5 gap-2 p-1 bg-gray-50 rounded-2xl border border-gray-100"></div>
+        </div>
+
         <div>
           <label id="i18n-username-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">表示名（ニックネーム）</label>
           <input type="text" id="settings-username-input" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="あなたの名前">
-          <p id="i18n-username-hint" class="text-xs text-gray-400 mt-1">他の人があなたを追加するときに使う名前です。</p>
+        </div>
+
+        <div>
+          <label id="i18n-userid-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">ユーザーID（友達追加用ID）</label>
+          <div class="relative">
+            <span class="absolute left-4 top-3.5 text-gray-400 font-mono text-sm">@</span>
+            <input type="text" id="settings-userid-input" class="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-mono" placeholder="my_unique_id">
+          </div>
+          <p id="i18n-userid-hint" class="text-xs text-gray-400 mt-1">他の人があなたを追加するときに使用する固有のIDです。</p>
         </div>
 
         <div>
@@ -136,6 +150,18 @@
       </div>
 
       <div class="flex-1 overflow-y-auto p-3 space-y-4 no-scrollbar">
+        
+        <!-- Friend Requests Section (Notification Area) -->
+        <div id="requests-section" class="hidden">
+          <div class="flex items-center justify-between mb-2 px-3">
+            <span id="i18n-requests-header" class="hidden md:block text-xs font-bold text-yellow-400 uppercase tracking-wider">
+              <i class="fas fa-bell mr-1 animate-bounce"></i> 友達リクエスト
+            </span>
+            <span id="request-badge" class="bg-yellow-500 text-gray-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full">0</span>
+          </div>
+          <div id="request-list" class="space-y-2"></div>
+        </div>
+
         <!-- Channels Section -->
         <div>
           <div class="flex items-center justify-between mb-2 px-3">
@@ -151,7 +177,7 @@
         <div>
           <div class="flex items-center justify-between mb-2 px-3">
             <span id="i18n-contacts-header" class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider">連絡先</span>
-            <button onclick="promptAddContact()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold transition-colors" title="ユーザーを追加">
+            <button onclick="promptAddContact()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold transition-colors" title="IDでユーザーを追加">
               <i class="fas fa-user-plus"></i> <span id="i18n-add-btn" class="hidden md:inline">追加</span>
             </button>
           </div>
@@ -162,12 +188,12 @@
       <!-- User Profile (Bottom) -->
       <div class="p-4 bg-gray-950 border-t border-gray-800 flex items-center justify-between">
         <div class="flex items-center overflow-hidden">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center shadow-inner flex-shrink-0">
-            <i class="fas fa-user text-white/80"></i>
+          <div id="user-avatar-display" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-inner flex-shrink-0 text-white text-base">
+            <i class="fas fa-user"></i>
           </div>
           <div class="hidden md:block ml-3 overflow-hidden">
-            <p class="text-sm font-medium text-white truncate" id="user-name-display">You</p>
-            <p class="text-xs text-gray-500 truncate" id="user-id-display">ID: ...</p>
+            <p class="text-sm font-bold text-white truncate" id="user-name-display">You</p>
+            <p class="text-xs text-blue-400 font-mono truncate" id="user-id-display">ID: @...</p>
           </div>
         </div>
         <div class="hidden md:flex items-center space-x-1">
@@ -292,7 +318,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, deleteDoc, getDocs, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const appId = 'e44gef-default-id';
     const firebaseConfig = {
@@ -309,6 +335,11 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
+    const presetAvatars = [
+      'fa-user', 'fa-cat', 'fa-dog', 'fa-robot', 'fa-user-ninja',
+      'fa-user-astronaut', 'fa-ghost', 'fa-crown', 'fa-gamepad', 'fa-smile'
+    ];
+
     const i18n = {
       ja: {
         authTitle: "Welcome to E44geF",
@@ -322,12 +353,15 @@
         orText: "または",
         guestBtn: "ゲストとしてすぐ始める",
         settingsTitle: "アカウント設定",
+        avatarLabel: "アイコンを選択",
         usernameLabel: "表示名（ニックネーム）",
-        usernameHint: "他の人があなたを追加するときに使う名前です。",
+        userIdLabel: "ユーザーID（友達追加用ID）",
+        userIdHint: "他の人があなたを追加するときに使用する固有のIDです。",
         languageLabel: "言語 / Language",
         saveBtn: "保存する",
         channelsHeader: "チャンネル",
         contactsHeader: "連絡先",
+        requestsHeader: "友達リクエスト",
         addBtn: "追加",
         addChannelBtn: "追加",
         publicChannel: "パブリックチャンネル",
@@ -344,7 +378,10 @@
         videoCallTitle: "ビデオ通話",
         settingsTooltip: "設定",
         logoutTooltip: "ログアウト",
-        renameChannelTooltip: "チャンネル名を変更"
+        renameChannelTooltip: "チャンネル名を変更",
+        acceptBtn: "承認",
+        rejectBtn: "拒否",
+        reqFrom: "から追加依頼が来ました。"
       },
       en: {
         authTitle: "Welcome to E44geF",
@@ -358,12 +395,15 @@
         orText: "OR",
         guestBtn: "Continue as Guest",
         settingsTitle: "Account Settings",
+        avatarLabel: "Select Icon",
         usernameLabel: "Display Name",
-        usernameHint: "This name will be visible to other users when adding you.",
+        userIdLabel: "User ID (For adding friends)",
+        userIdHint: "Unique ID for others to add you as a friend.",
         languageLabel: "Language / 言語",
         saveBtn: "Save Settings",
         channelsHeader: "Channels",
         contactsHeader: "Contacts",
+        requestsHeader: "Friend Requests",
         addBtn: "Add",
         addChannelBtn: "Add",
         publicChannel: "Public Channel",
@@ -380,7 +420,10 @@
         videoCallTitle: "Video Call",
         settingsTooltip: "Settings",
         logoutTooltip: "Log Out",
-        renameChannelTooltip: "Rename Channel"
+        renameChannelTooltip: "Rename Channel",
+        acceptBtn: "Accept",
+        rejectBtn: "Reject",
+        reqFrom: "sent you a friend request."
       }
     };
 
@@ -397,11 +440,16 @@
       
       settingsModal: document.getElementById('settings-modal'),
       settingsUsernameInput: document.getElementById('settings-username-input'),
+      settingsUseridInput: document.getElementById('settings-userid-input'),
       settingsLanguageSelect: document.getElementById('settings-language-select'),
+      avatarGrid: document.getElementById('avatar-grid'),
       
       loadingOverlay: document.getElementById('loading-overlay'),
       roomList: document.getElementById('room-list'),
       contactList: document.getElementById('contact-list'),
+      requestsSection: document.getElementById('requests-section'),
+      requestList: document.getElementById('request-list'),
+      requestBadge: document.getElementById('request-badge'),
       chatTitle: document.getElementById('chat-title'),
       chatSubtitle: document.getElementById('chat-subtitle'),
       chatHeaderIcon: document.getElementById('chat-header-icon'),
@@ -424,19 +472,24 @@
       rejectCallBtn: document.getElementById('reject-call-btn'),
       incomingRoomName: document.getElementById('incoming-room-name'),
       userIdDisplay: document.getElementById('user-id-display'),
-      userNameDisplay: document.getElementById('user-name-display')
+      userNameDisplay: document.getElementById('user-name-display'),
+      userAvatarDisplay: document.getElementById('user-avatar-display')
     };
 
     let currentUser = null;
     let currentRoomId = 'general';
     let currentRoomType = 'channel';
     let currentDisplayName = '';
+    let currentUserTag = '';
+    let currentAvatarIcon = 'fa-user';
+    let selectedAvatarTemp = 'fa-user';
     let authMode = 'login';
     
     let dbChannels = [];
     let rooms = [];
     let allMessages = [];
-    let myContacts = [];
+    let incomingRequests = [];
+    let acceptedFriends = [];
 
     let pc = null;
     let localStream = null;
@@ -449,6 +502,26 @@
     const rtcConfig = {
       iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }]
     };
+
+    function renderAvatarGrid() {
+      dom.avatarGrid.innerHTML = '';
+      presetAvatars.forEach(icon => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = selectedAvatarTemp === icon;
+        btn.className = `w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all ${
+          isSelected 
+            ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 scale-105' 
+            : 'bg-white text-gray-600 hover:bg-gray-100'
+        }`;
+        btn.innerHTML = `<i class="fas ${icon}"></i>`;
+        btn.onclick = () => {
+          selectedAvatarTemp = icon;
+          renderAvatarGrid();
+        };
+        dom.avatarGrid.appendChild(btn);
+      });
+    }
 
     function updateRoomsList() {
       const defaultRooms = [
@@ -503,13 +576,16 @@
       document.getElementById('i18n-guest-btn').innerText = t.guestBtn;
 
       document.getElementById('i18n-settings-title').innerHTML = `<i class="fas fa-cog mr-2 text-blue-600"></i> ${t.settingsTitle}`;
+      document.getElementById('i18n-avatar-label').innerText = t.avatarLabel;
       document.getElementById('i18n-username-label').innerText = t.usernameLabel;
-      document.getElementById('i18n-username-hint').innerText = t.usernameHint;
+      document.getElementById('i18n-userid-label').innerText = t.userIdLabel;
+      document.getElementById('i18n-userid-hint').innerText = t.userIdHint;
       document.getElementById('i18n-language-label').innerText = t.languageLabel;
       document.getElementById('i18n-save-btn').innerText = t.saveBtn;
 
       document.getElementById('i18n-channels-header').innerText = t.channelsHeader;
       document.getElementById('i18n-contacts-header').innerText = t.contactsHeader;
+      document.getElementById('i18n-requests-header').innerHTML = `<i class="fas fa-bell mr-1 animate-bounce"></i> ${t.requestsHeader}`;
       document.getElementById('i18n-add-btn').innerText = t.addBtn;
       document.getElementById('i18n-add-channel-btn').innerText = t.addChannelBtn;
 
@@ -527,6 +603,7 @@
       dom.settingsLanguageSelect.value = lang;
 
       updateRoomsList();
+      renderRequestsList();
       renderContactList();
       renderMessages();
 
@@ -538,7 +615,7 @@
     }
 
     window.promptAddChannel = async function() {
-      const promptMsg = currentLang === 'ja' ? "新しいチャンネル名を入力してください（日本語OK）:" : "Enter new channel name:";
+      const promptMsg = currentLang === 'ja' ? "新しいチャンネル名を入力してください:" : "Enter new channel name:";
       const channelName = prompt(promptMsg);
       if (!channelName || !channelName.trim()) return;
 
@@ -635,7 +712,10 @@
     window.toggleSettingsModal = function(show) {
       if (show) {
         dom.settingsUsernameInput.value = currentDisplayName;
+        dom.settingsUseridInput.value = currentUserTag;
         dom.settingsLanguageSelect.value = currentLang;
+        selectedAvatarTemp = currentAvatarIcon;
+        renderAvatarGrid();
         dom.settingsModal.classList.remove('hidden');
         dom.settingsModal.classList.add('flex');
         setTimeout(() => dom.settingsModal.classList.remove('opacity-0'), 50);
@@ -647,18 +727,30 @@
 
     window.saveSettings = async function() {
       const newName = dom.settingsUsernameInput.value.trim();
+      const newTag = dom.settingsUseridInput.value.trim().replace(/^@/, '');
       const selectedLang = dom.settingsLanguageSelect.value;
-      if (!newName || !currentUser) return;
+      
+      if (!newName || !newTag || !currentUser) {
+        alert(currentLang === 'ja' ? '名前とユーザーIDを入力してください' : 'Please fill in display name and user ID');
+        return;
+      }
       
       try {
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid), {
           uid: currentUser.uid,
           displayName: newName,
+          userTag: newTag,
+          avatarIcon: selectedAvatarTemp,
           lastActive: Date.now()
         }, { merge: true });
         
         currentDisplayName = newName;
+        currentUserTag = newTag;
+        currentAvatarIcon = selectedAvatarTemp;
+        
         dom.userNameDisplay.innerText = newName;
+        dom.userIdDisplay.innerText = `ID: @${newTag}`;
+        dom.userAvatarDisplay.innerHTML = `<i class="fas ${currentAvatarIcon}"></i>`;
         
         applyLanguage(selectedLang);
         toggleSettingsModal(false);
@@ -668,13 +760,16 @@
       }
     };
 
+    // Prompt user to send friend request via unique ID
     window.promptAddContact = async function() {
-      const promptMsg = currentLang === 'ja' ? "追加したい相手の「ユーザーネーム（表示名）」を入力してください:" : "Enter the username (display name) of the user to add:";
-      const targetName = prompt(promptMsg);
-      if (!targetName || !targetName.trim()) return;
+      const promptMsg = currentLang === 'ja' 
+        ? "追加したい相手の「ユーザーID（例: my_id）」を入力してください:" 
+        : "Enter the User ID of the contact you want to add:";
+      const targetTagInput = prompt(promptMsg);
+      if (!targetTagInput || !targetTagInput.trim()) return;
 
-      const searchName = targetName.trim();
-      if (searchName === currentDisplayName) {
+      const searchTag = targetTagInput.trim().replace(/^@/, '');
+      if (searchTag === currentUserTag) {
         alert(currentLang === 'ja' ? "自分自身を追加することはできません。" : "You cannot add yourself.");
         return;
       }
@@ -686,33 +781,81 @@
         
         snapshot.forEach(docSnap => {
           const data = docSnap.data();
-          if (data.displayName === searchName) {
+          if (data.userTag === searchTag || data.uid === searchTag) {
             foundUser = data;
           }
         });
 
         if (!foundUser) {
           alert(currentLang === 'ja' 
-            ? `「${searchName}」というユーザーが見つかりませんでした。\n相手が一度アプリにログインしているか確認してください。` 
-            : `User "${searchName}" was not found.`);
+            ? `ユーザーID「@${searchTag}」が見つかりませんでした。\nIDが正しいか確認してください。` 
+            : `User ID "@${searchTag}" was not found.`);
           return;
         }
 
-        if (myContacts.some(c => c.uid === foundUser.uid)) {
-          alert(currentLang === 'ja' ? "すでに連絡先に追加されています。" : "Already added to contacts.");
-          return;
-        }
-
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid, 'contacts'), {
-          uid: foundUser.uid,
-          displayName: foundUser.displayName,
-          addedAt: Date.now()
+        // Check if already friends or already sent request
+        const reqRef = collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests');
+        const reqSnap = await getDocs(reqRef);
+        let existing = false;
+        
+        reqSnap.forEach(docSnap => {
+          const r = docSnap.data();
+          if ((r.fromUid === currentUser.uid && r.toUid === foundUser.uid) ||
+              (r.fromUid === foundUser.uid && r.toUid === currentUser.uid)) {
+            existing = true;
+          }
         });
 
-        alert(currentLang === 'ja' ? `「${foundUser.displayName}」さんを連絡先に追加しました！` : `Added "${foundUser.displayName}" to contacts!`);
+        if (existing) {
+          alert(currentLang === 'ja' 
+            ? "既に友達リクエストを送信済み、またはフレンドです。" 
+            : "Friend request already sent or already friends.");
+          return;
+        }
+
+        // Send Friend Request (Status: pending)
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests'), {
+          fromUid: currentUser.uid,
+          fromName: currentDisplayName,
+          fromTag: currentUserTag,
+          fromAvatar: currentAvatarIcon,
+          toUid: foundUser.uid,
+          toName: foundUser.displayName || 'User',
+          toTag: foundUser.userTag || '',
+          toAvatar: foundUser.avatarIcon || 'fa-user',
+          status: 'pending',
+          timestamp: Date.now()
+        });
+
+        alert(currentLang === 'ja' 
+          ? `「${foundUser.displayName} (@${foundUser.userTag})」さんに友達追加依頼を送信しました！\n相手が承認すると連絡先に追加されます。` 
+          : `Sent a friend request to "${foundUser.displayName}"!`);
       } catch (e) {
         console.error(e);
-        alert(currentLang === 'ja' ? "ユーザーの追加に失敗しました。" : "Failed to add user.");
+        alert(currentLang === 'ja' ? "リクエストの送信に失敗しました。" : "Failed to send request.");
+      }
+    };
+
+    // Accept Request (☑)
+    window.acceptRequest = async function(reqId) {
+      try {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friend_requests', reqId), {
+          status: 'accepted',
+          acceptedAt: Date.now()
+        });
+      } catch (e) {
+        console.error(e);
+        alert("エラーが発生しました");
+      }
+    };
+
+    // Reject Request (☒)
+    window.rejectRequest = async function(reqId) {
+      try {
+        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friend_requests', reqId));
+      } catch (e) {
+        console.error(e);
+        alert("エラーが発生しました");
       }
     };
 
@@ -729,19 +872,28 @@
         const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid);
         const userSnap = await getDoc(userRef);
         
-        if (userSnap.exists() && userSnap.data().displayName) {
-          currentDisplayName = userSnap.data().displayName;
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          currentDisplayName = userData.displayName || (user.email ? user.email.split('@')[0] : `Guest_${user.uid.substring(0, 4)}`);
+          currentUserTag = userData.userTag || `id_${user.uid.substring(0, 6)}`;
+          currentAvatarIcon = userData.avatarIcon || 'fa-user';
         } else {
           currentDisplayName = user.email ? user.email.split('@')[0] : `Guest_${user.uid.substring(0, 4)}`;
+          currentUserTag = `id_${Math.random().toString(36).substring(2, 7)}`;
+          currentAvatarIcon = 'fa-user';
+          
           await setDoc(userRef, {
             uid: user.uid,
             displayName: currentDisplayName,
+            userTag: currentUserTag,
+            avatarIcon: currentAvatarIcon,
             lastActive: Date.now()
           }, { merge: true });
         }
 
         dom.userNameDisplay.innerText = currentDisplayName;
-        dom.userIdDisplay.innerText = user.email ? user.email : `ID: ${user.uid.substring(0, 8)}`;
+        dom.userIdDisplay.innerText = `ID: @${currentUserTag}`;
+        dom.userAvatarDisplay.innerHTML = `<i class="fas ${currentAvatarIcon}"></i>`;
         
         dom.authModal.style.opacity = '0';
         setTimeout(() => dom.authModal.classList.add('hidden'), 300);
@@ -773,16 +925,65 @@
       });
     }
 
+    // Render Request Notifications (App-level Notification)
+    function renderRequestsList() {
+      dom.requestList.innerHTML = '';
+      
+      if (incomingRequests.length === 0) {
+        dom.requestsSection.classList.add('hidden');
+        return;
+      }
+
+      dom.requestsSection.classList.remove('hidden');
+      dom.requestBadge.innerText = incomingRequests.length;
+
+      const t = i18n[currentLang];
+
+      incomingRequests.forEach(req => {
+        const card = document.createElement('div');
+        card.className = "p-3 bg-gradient-to-r from-gray-800 to-gray-850 rounded-2xl border border-yellow-500/30 shadow-lg mx-2 mb-2 transition-all";
+        card.innerHTML = `
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="w-7 h-7 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs">
+              <i class="fas ${req.fromAvatar || 'fa-user'}"></i>
+            </div>
+            <div class="overflow-hidden">
+              <p class="font-bold text-xs text-white truncate">${req.fromName}</p>
+              <p class="text-[10px] text-gray-400 font-mono truncate">@${req.fromTag}</p>
+            </div>
+          </div>
+          <p class="text-[11px] text-gray-300 mb-2.5 font-medium leading-tight">
+            ${t.reqFrom}
+          </p>
+          <div class="flex gap-1.5">
+            <button onclick="acceptRequest('${req.id}')" class="flex-1 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-sm">
+              <i class="fas fa-check-square"></i> ${t.acceptBtn}
+            </button>
+            <button onclick="rejectRequest('${req.id}')" class="flex-1 py-1.5 bg-gray-700 hover:bg-red-600 text-gray-200 hover:text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1">
+              <i class="fas fa-window-close"></i> ${t.rejectBtn}
+            </button>
+          </div>
+        `;
+        dom.requestList.appendChild(card);
+      });
+    }
+
     function renderContactList() {
       dom.contactList.innerHTML = '';
       
-      if (myContacts.length === 0) {
+      if (acceptedFriends.length === 0) {
         dom.contactList.innerHTML = `<li class="px-3 text-xs text-gray-500 italic">${i18n[currentLang].noContacts}</li>`;
         return;
       }
 
-      myContacts.forEach(contact => {
-        const dmRoomId = [currentUser.uid, contact.uid].sort().join('_');
+      acceptedFriends.forEach(friend => {
+        const isFromMe = friend.fromUid === currentUser.uid;
+        const targetId = isFromMe ? friend.toUid : friend.fromUid;
+        const targetName = isFromMe ? friend.toName : friend.fromName;
+        const targetTag = isFromMe ? friend.toTag : friend.fromTag;
+        const targetAvatar = isFromMe ? (friend.toAvatar || 'fa-user') : (friend.fromAvatar || 'fa-user');
+
+        const dmRoomId = [currentUser.uid, targetId].sort().join('_');
         const isActive = currentRoomType === 'dm' && currentRoomId === dmRoomId;
         
         const li = document.createElement('li');
@@ -790,13 +991,16 @@
         li.innerHTML = `
           <div class="relative mr-3">
             <div class="w-8 h-8 rounded-full ${isActive ? 'bg-white/20' : 'bg-gray-800'} flex items-center justify-center text-xs text-white">
-              <i class="fas fa-user"></i>
+              <i class="fas ${targetAvatar}"></i>
             </div>
             <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-gray-900"></div>
           </div>
-          <span class="font-medium text-sm md:text-base ${isActive ? '' : 'hidden md:inline'} truncate">${contact.displayName}</span>
+          <div class="overflow-hidden ${isActive ? '' : 'hidden md:block'}">
+            <p class="font-medium text-sm truncate leading-tight">${targetName}</p>
+            <p class="text-[10px] opacity-60 font-mono truncate">@${targetTag || 'user'}</p>
+          </div>
         `;
-        li.onclick = () => selectRoom(dmRoomId, 'dm', contact.displayName);
+        li.onclick = () => selectRoom(dmRoomId, 'dm', targetName);
         dom.contactList.appendChild(li);
       });
     }
@@ -849,12 +1053,14 @@
       roomMessages.forEach((msg, index) => {
         const isMine = msg.userId === currentUser?.uid;
         const showAvatar = lastUserId !== msg.userId || index === 0;
+        const avatar = msg.userAvatar || 'fa-user';
+        
         const div = document.createElement('div');
         div.className = `flex w-full ${isMine ? 'justify-end' : 'justify-start'} ${showAvatar ? 'mt-4' : 'mt-1'}`;
         
         let html = '';
         if (!isMine && showAvatar) {
-          html += `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white flex-shrink-0 mr-2 mt-1"><i class="fas fa-user text-xs"></i></div>`;
+          html += `<div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mr-2 mt-1"><i class="fas ${avatar} text-xs"></i></div>`;
         } else if (!isMine) {
           html += `<div class="w-8 mr-2 flex-shrink-0"></div>`;
         }
@@ -886,6 +1092,7 @@
           text: text,
           userId: currentUser.uid,
           userName: currentDisplayName,
+          userAvatar: currentAvatarIcon,
           timestamp: Date.now()
         });
       } catch(e) { console.error(e); }
@@ -914,10 +1121,18 @@
         renderMessages();
       });
 
-      // Contacts listener
-      const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid, 'contacts');
-      onSnapshot(contactsRef, (snapshot) => {
-        myContacts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Friend Requests & Friends listener
+      const reqRef = collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests');
+      onSnapshot(reqRef, (snapshot) => {
+        const allReqs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Income requests (Pending for current user)
+        incomingRequests = allReqs.filter(r => r.toUid === currentUser.uid && r.status === 'pending');
+        
+        // Accepted friends (both direction)
+        acceptedFriends = allReqs.filter(r => (r.fromUid === currentUser.uid || r.toUid === currentUser.uid) && r.status === 'accepted');
+
+        renderRequestsList();
         renderContactList();
       });
 
