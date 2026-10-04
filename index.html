@@ -32,69 +32,9 @@
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
-
-    /* === トースト通知用のCSS 追加 === */
-    .toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 99999; /* モーダルより手前に表示 */
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .toast {
-      min-width: 280px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      color: #ffffff;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 14px;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      backdrop-filter: blur(8px);
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .toast.hide {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-
-    .toast-success { background-color: rgba(46, 125, 50, 0.95); }
-    .toast-error   { background-color: rgba(211, 47, 47, 0.95); }
-    .toast-info    { background-color: rgba(31, 41, 55, 0.95); } /* ダークグレー系（アプリのトーンに調整） */
-
-    .toast-close {
-      background: none;
-      border: none;
-      color: inherit;
-      font-size: 18px;
-      cursor: pointer;
-      margin-left: 12px;
-      opacity: 0.7;
-      line-height: 1;
-      padding: 0;
-    }
-    .toast-close:hover {
-      opacity: 1;
-    }
-    /* ================================= */
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 h-screen w-screen overflow-hidden flex font-sans antialiased selection:bg-blue-200 selection:text-blue-900">
-
-  <!-- トースト通知用コンテナ追加 -->
-  <div id="toast-container" class="toast-container"></div>
 
   <!-- Login / Auth Modal -->
   <div id="auth-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-md z-[70] flex items-center justify-center transition-opacity duration-300">
@@ -107,13 +47,11 @@
         <p id="i18n-auth-sub" class="text-sm text-gray-500 mt-1">ログイン方法を選んでください</p>
       </div>
 
-      <!-- Tab selector -->
       <div class="flex bg-gray-100 p-1 rounded-xl mb-6">
         <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 py-2 text-sm font-semibold rounded-lg bg-white shadow-sm text-blue-600 transition-all">ログイン</button>
         <button id="tab-register-btn" onclick="switchAuthTab('register')" class="flex-1 py-2 text-sm font-semibold rounded-lg text-gray-500 transition-all">新規登録</button>
       </div>
 
-      <!-- Form -->
       <div class="space-y-4">
         <div>
           <label id="i18n-email-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">メールアドレス</label>
@@ -143,16 +81,15 @@
     </div>
   </div>
 
-  <!-- Settings Modal -->
+  <!-- Account Settings Modal -->
   <div id="settings-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-md z-[70] hidden flex items-center justify-center transition-opacity duration-300 opacity-0">
     <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 relative max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h3 id="i18n-settings-title" class="text-xl font-bold text-gray-800"><i class="fas fa-cog mr-2 text-blue-600"></i> アカウント設定</h3>
-        <button onclick="toggleSettingsModal(false)" class="text-gray-400 hover:text-gray-600 p-2"><i class="fas fa-times text-lg"></i></button>
+        <button onclick="toggleModal('settings-modal', false)" class="text-gray-400 hover:text-gray-600 p-2"><i class="fas fa-times text-lg"></i></button>
       </div>
       
       <div class="space-y-5">
-        <!-- Icon Selector -->
         <div>
           <label id="i18n-avatar-label" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">アイコンを選択</label>
           <div id="avatar-grid" class="grid grid-cols-5 gap-2 p-1 bg-gray-50 rounded-2xl border border-gray-100"></div>
@@ -187,6 +124,83 @@
     </div>
   </div>
 
+  <!-- [NEW] App-native Add Contact Modal -->
+  <div id="add-contact-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-md z-[70] hidden flex items-center justify-center transition-opacity duration-300 opacity-0">
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-user-plus text-blue-600"></i> 友達を追加
+        </h3>
+        <button onclick="toggleModal('add-contact-modal', false)" class="text-gray-400 hover:text-gray-600 p-2"><i class="fas fa-times text-lg"></i></button>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">追加したい相手の「ユーザーID（例: my_id）」を入力してください。</p>
+      <div class="space-y-4">
+        <div class="relative">
+          <span class="absolute left-4 top-3.5 text-gray-400 font-mono text-sm">@</span>
+          <input type="text" id="add-contact-input" class="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-mono" placeholder="my_id">
+        </div>
+        <button onclick="executeAddContact()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-600/30 transition-all text-sm">
+          リクエストを送信
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- [NEW] App-native Add Channel Modal -->
+  <div id="add-channel-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-md z-[70] hidden flex items-center justify-center transition-opacity duration-300 opacity-0">
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-hashtag text-blue-600"></i> チャンネルを作成
+        </h3>
+        <button onclick="toggleModal('add-channel-modal', false)" class="text-gray-400 hover:text-gray-600 p-2"><i class="fas fa-times text-lg"></i></button>
+      </div>
+      <div class="space-y-4">
+        <input type="text" id="add-channel-input" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="新しいチャンネル名">
+        <button onclick="executeAddChannel()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-600/30 transition-all text-sm">
+          作成する
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- [NEW] App-native Rename Channel Modal -->
+  <div id="rename-channel-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-md z-[70] hidden flex items-center justify-center transition-opacity duration-300 opacity-0">
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-pencil-alt text-blue-600"></i> チャンネル名を変更
+        </h3>
+        <button onclick="toggleModal('rename-channel-modal', false)" class="text-gray-400 hover:text-gray-600 p-2"><i class="fas fa-times text-lg"></i></button>
+      </div>
+      <div class="space-y-4">
+        <input type="text" id="rename-channel-input" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="新しい名前">
+        <button onclick="executeRenameChannel()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-600/30 transition-all text-sm">
+          保存する
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- [NEW] App-native Confirm Dialog Modal -->
+  <div id="confirm-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-md z-[70] hidden flex items-center justify-center transition-opacity duration-300 opacity-0">
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 text-center relative">
+      <div class="w-12 h-12 bg-red-100 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <h3 id="confirm-modal-title" class="text-lg font-bold text-gray-800 mb-2">確認</h3>
+      <p id="confirm-modal-msg" class="text-xs text-gray-500 mb-6">本当に実行しますか？</p>
+      <div class="flex gap-3">
+        <button onclick="toggleModal('confirm-modal', false)" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all text-xs">
+          キャンセル
+        </button>
+        <button id="confirm-modal-ok-btn" class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all text-xs shadow-md shadow-red-600/30">
+          実行する
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Initial Loading Screen -->
   <div id="loading-overlay" class="fixed inset-0 bg-white z-[60] flex flex-col items-center justify-center transition-opacity duration-500">
     <div class="text-blue-600 text-6xl font-black mb-6 drop-shadow-sm tracking-tighter">E44geF</div>
@@ -211,7 +225,7 @@
 
       <div class="flex-1 overflow-y-auto p-3 space-y-4 no-scrollbar">
         
-        <!-- Friend Requests Section (Notification Area) -->
+        <!-- Friend Requests Section -->
         <div id="requests-section" class="hidden">
           <div class="flex items-center justify-between mb-2 px-3">
             <span id="i18n-requests-header" class="hidden md:block text-xs font-bold text-yellow-400 uppercase tracking-wider">
@@ -226,18 +240,18 @@
         <div>
           <div class="flex items-center justify-between mb-2 px-3">
             <span id="i18n-channels-header" class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider">チャンネル</span>
-            <button onclick="promptAddChannel()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold transition-colors" title="チャンネルを追加">
+            <button onclick="toggleModal('add-channel-modal', true)" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold transition-colors" title="チャンネルを追加">
               <i class="fas fa-plus"></i> <span id="i18n-add-channel-btn" class="hidden md:inline">追加</span>
             </button>
           </div>
           <ul id="room-list" class="space-y-1"></ul>
         </div>
 
-        <!-- Contacts Section (Added Users) -->
+        <!-- Contacts Section -->
         <div>
           <div class="flex items-center justify-between mb-2 px-3">
             <span id="i18n-contacts-header" class="hidden md:block text-xs font-semibold text-gray-500 uppercase tracking-wider">連絡先</span>
-            <button onclick="promptAddContact()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold transition-colors" title="IDでユーザーを追加">
+            <button onclick="toggleModal('add-contact-modal', true)" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold transition-colors" title="IDでユーザーを追加">
               <i class="fas fa-user-plus"></i> <span id="i18n-add-btn" class="hidden md:inline">追加</span>
             </button>
           </div>
@@ -257,7 +271,7 @@
           </div>
         </div>
         <div class="hidden md:flex items-center space-x-1">
-          <button id="btn-settings-tooltip" onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-white p-2 transition-colors" title="設定">
+          <button id="btn-settings-tooltip" onclick="toggleModal('settings-modal', true)" class="text-gray-400 hover:text-white p-2 transition-colors" title="設定">
             <i class="fas fa-cog"></i>
           </button>
           <button id="btn-logout-tooltip" onclick="logout()" class="text-gray-400 hover:text-red-400 p-2 transition-colors" title="ログアウト">
@@ -279,7 +293,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h2 id="chat-title" class="text-lg md:text-xl font-bold text-gray-800 tracking-tight">ルームを選択</h2>
-              <button id="rename-channel-btn" onclick="promptRenameChannel()" class="text-gray-400 hover:text-blue-600 transition-colors p-1 text-sm hidden" title="チャンネル名を変更">
+              <button id="rename-channel-btn" onclick="openRenameModal()" class="text-gray-400 hover:text-blue-600 transition-colors p-1 text-sm hidden" title="チャンネル名を変更">
                 <i class="fas fa-pencil-alt"></i>
               </button>
             </div>
@@ -288,14 +302,14 @@
         </div>
         
         <div class="flex items-center space-x-2 md:space-x-3">
-          <!-- アプリ内通知一覧 (ベルマーク ＆ ドロップダウン) -->
+          <!-- アプリ内通知ベルマーク -->
           <div class="relative">
-            <button id="app-bell-btn" class="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-colors focus:outline-none relative" title="通知">
+            <button id="app-bell-btn" class="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-colors focus:outline-none relative" title="アプリ内通知">
               <i class="fas fa-bell"></i>
               <span id="app-unread-badge" class="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
             </button>
 
-            <!-- 通知ドロップダウン -->
+            <!-- アプリ内通知ドロップダウン -->
             <div id="app-notification-dropdown" class="absolute right-0 top-14 w-72 md:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 hidden z-50 overflow-hidden">
               <div class="p-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                 <span class="text-xs font-bold text-gray-700 uppercase tracking-wider" id="i18n-app-notif-title">アプリ内通知</span>
@@ -338,7 +352,7 @@
     </div>
   </div>
 
-  <!-- Call Interface Overlay -->
+  <!-- Call Overlay -->
   <div id="call-modal" class="fixed inset-0 bg-gray-950 z-50 hidden flex-col transition-opacity duration-300 opacity-0">
     <div class="flex-1 relative overflow-hidden flex justify-center items-center">
       <video id="remote-video" autoplay playsinline class="w-full h-full object-cover"></video>
@@ -366,7 +380,6 @@
         </div>
       </div>
     </div>
-    
     <div class="bg-gray-900/90 backdrop-blur-lg border-t border-gray-800 p-6 md:p-8 flex justify-center space-x-6 md:space-x-10 items-center z-20">
       <button id="end-call-btn" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg shadow-red-500/20 hover:scale-110 transition-all">
         <i class="fas fa-phone-slash text-2xl md:text-3xl"></i>
@@ -397,7 +410,12 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, deleteDoc, getDocs, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, deleteDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // ブラウザ標準の prompt / alert / confirm を安全に無効化・アプリ内通知へ置換
+    window.prompt = function(msg) { console.warn('Blocked browser prompt:', msg); return null; };
+    window.alert = function(msg) { pushAppNotification('⚠️ ' + msg); };
+    window.confirm = function(msg) { console.warn('Blocked browser confirm:', msg); return true; };
 
     const appId = 'e44gef-default-id';
     const firebaseConfig = {
@@ -547,7 +565,7 @@
       audioCallBtn: document.getElementById('audio-call-btn'),
       renameChannelBtn: document.getElementById('rename-channel-btn'),
 
-      // App Notifications DOM
+      // App Bell Notification DOM
       appBellBtn: document.getElementById('app-bell-btn'),
       appUnreadBadge: document.getElementById('app-unread-badge'),
       appNotificationDropdown: document.getElementById('app-notification-dropdown'),
@@ -600,115 +618,30 @@
       iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }]
     };
 
-    // ------------------------------------------
-    // トースト通知クラス (完全版) 追加
-    // ------------------------------------------
-    class Toast {
-      #container;
-      #element;
-      #timeoutId = null;
-      #startTime = 0;
-      #remainingTime;
-
-      constructor(message, { type = 'info', duration = 4000, containerId = 'toast-container' } = {}) {
-        this.#container = document.getElementById(containerId);
-        if (!this.#container) return;
-
-        this.#remainingTime = duration;
-        this.#createElement(message, type);
-        this.#bindEvents();
-        this.#show();
+    // --- Modal Management ---
+    window.toggleModal = function(modalId, show) {
+      const el = document.getElementById(modalId);
+      if (!el) return;
+      if (show) {
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+        setTimeout(() => el.classList.remove('opacity-0'), 30);
+      } else {
+        el.classList.add('opacity-0');
+        setTimeout(() => { el.classList.add('hidden'); el.classList.remove('flex'); }, 300);
       }
+    };
 
-      #createElement(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        
-        const textSpan = document.createElement('span');
-        textSpan.className = 'toast-message font-medium';
-        textSpan.textContent = message; // HTMLエスケープ処理込み
-
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'toast-close';
-        closeBtn.setAttribute('aria-label', '閉じる');
-        closeBtn.innerHTML = '&times;';
-
-        toast.appendChild(textSpan);
-        toast.appendChild(closeBtn);
-
-        this.#element = toast;
-        this.#container.appendChild(toast);
-      }
-
-      #show() {
-        requestAnimationFrame(() => {
-          this.#element.classList.add('show');
-        });
-        this.#startTimer();
-      }
-
-      #dismiss = () => {
-        if (!this.#element) return;
-        
-        this.#element.classList.remove('show');
-        this.#element.classList.add('hide');
-
-        this.#element.addEventListener('transitionend', () => {
-          this.#element?.remove();
-          this.#element = null;
-        }, { once: true });
-      }
-
-      #startTimer() {
-        this.#startTime = Date.now();
-        this.#timeoutId = setTimeout(this.#dismiss, this.#remainingTime);
-      }
-
-      #pauseTimer = () => {
-        clearTimeout(this.#timeoutId);
-        this.#remainingTime -= Date.now() - this.#startTime;
-      }
-
-      #resumeTimer = () => {
-        if (this.#remainingTime > 0) {
-          this.#startTimer();
-        }
-      }
-
-      #bindEvents() {
-        this.#element.addEventListener('mouseenter', this.#pauseTimer);
-        this.#element.addEventListener('mouseleave', this.#resumeTimer);
-
-        const closeBtn = this.#element.querySelector('.toast-close');
-        closeBtn.addEventListener('click', () => {
-          clearTimeout(this.#timeoutId);
-          this.#dismiss();
-        });
-      }
-
-      static show(message, options) {
-        return new Toast(message, options);
-      }
-    }
-
-    // ------------------------------------------
-    // アプリ内通知 統括システム（トースト通知 ＋ ドロップダウン）
-    // ------------------------------------------
-    window.pushAppNotification = function(message, type = 'info') {
-      // 1. ドロップダウンリストへ追加
+    // --- App Notification System (Bell Icon) ---
+    window.pushAppNotification = function(message) {
       addNotificationToList(message);
       unreadNotifCount++;
       updateNotifBadge();
-
-      // 2. 追加：画面右下にトースト通知を自動表示（4秒で消去、ホバーで一時停止）
-      Toast.show(message, { type: type, duration: 4000 });
     };
 
     function addNotificationToList(message) {
       const emptyNotice = document.getElementById('empty-app-notif');
-      if (emptyNotice) {
-        emptyNotice.remove();
-      }
+      if (emptyNotice) emptyNotice.remove();
 
       const now = new Date();
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -719,7 +652,6 @@
         <div class="text-gray-800 font-medium leading-snug">${message}</div>
         <span class="text-[10px] text-gray-400 font-mono">${timeStr}</span>
       `;
-
       dom.appNotificationList.prepend(li);
     }
 
@@ -745,15 +677,157 @@
       dom.appNotificationDropdown.classList.add('hidden');
     });
 
-    dom.appNotificationDropdown.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
+    dom.appNotificationDropdown.addEventListener('click', (e) => e.stopPropagation());
 
     dom.clearAppNotifBtn.addEventListener('click', () => {
       dom.appNotificationList.innerHTML = `<li class="p-4 text-center text-xs text-gray-400 italic" id="empty-app-notif">${i18n[currentLang].emptyNotif}</li>`;
       unreadNotifCount = 0;
       updateNotifBadge();
     });
+
+    // --- Actions with App-native Modals ---
+    window.executeAddContact = async function() {
+      const input = document.getElementById('add-contact-input');
+      const searchTag = input.value.trim().replace(/^@/, '');
+      if (!searchTag) {
+        pushAppNotification('⚠️ ユーザーIDを入力してください');
+        return;
+      }
+
+      if (searchTag === currentUserTag) {
+        pushAppNotification('⚠️ 自分自身を追加することはできません');
+        return;
+      }
+
+      try {
+        const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+        const snapshot = await getDocs(usersRef);
+        let foundUser = null;
+        
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.userTag === searchTag || data.uid === searchTag) {
+            foundUser = data;
+          }
+        });
+
+        if (!foundUser) {
+          pushAppNotification(`⚠️ ユーザーID「@${searchTag}」は見つかりませんでした`);
+          return;
+        }
+
+        const reqRef = collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests');
+        const reqSnap = await getDocs(reqRef);
+        let existing = false;
+        
+        reqSnap.forEach(docSnap => {
+          const r = docSnap.data();
+          if ((r.fromUid === currentUser.uid && r.toUid === foundUser.uid) ||
+              (r.fromUid === foundUser.uid && r.toUid === currentUser.uid)) {
+            existing = true;
+          }
+        });
+
+        if (existing) {
+          pushAppNotification('⚠️ 既にフレンド申請済み、またはフレンドです');
+          return;
+        }
+
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests'), {
+          fromUid: currentUser.uid,
+          fromName: currentDisplayName,
+          fromTag: currentUserTag,
+          fromAvatar: currentAvatarIcon,
+          toUid: foundUser.uid,
+          toName: foundUser.displayName || 'User',
+          toTag: foundUser.userTag || '',
+          toAvatar: foundUser.avatarIcon || 'fa-user',
+          status: 'pending',
+          timestamp: Date.now()
+        });
+
+        input.value = '';
+        toggleModal('add-contact-modal', false);
+        pushAppNotification(`✉️ ${foundUser.displayName} さんに友達リクエストを送信しました`);
+      } catch (e) {
+        console.error(e);
+        pushAppNotification('⚠️ リクエストの送信に失敗しました');
+      }
+    };
+
+    window.executeAddChannel = async function() {
+      const input = document.getElementById('add-channel-input');
+      const channelName = input.value.trim();
+      if (!channelName) {
+        pushAppNotification('⚠️ チャンネル名を入力してください');
+        return;
+      }
+
+      const channelId = 'channel_' + Date.now();
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'channels', channelId), {
+          id: channelId,
+          name: channelName,
+          icon: 'fa-hashtag',
+          createdAt: Date.now()
+        });
+        input.value = '';
+        toggleModal('add-channel-modal', false);
+        selectRoom(channelId, 'channel');
+        pushAppNotification(`📢 チャンネル「${channelName}」を作成しました`);
+      } catch (e) {
+        console.error(e);
+        pushAppNotification('⚠️️ チャンネルの作成に失敗しました');
+      }
+    };
+
+    window.openRenameModal = function() {
+      if (currentRoomType !== 'channel') return;
+      const room = rooms.find(r => r.id === currentRoomId);
+      document.getElementById('rename-channel-input').value = room ? room.name : '';
+      toggleModal('rename-channel-modal', true);
+    };
+
+    window.executeRenameChannel = async function() {
+      const input = document.getElementById('rename-channel-input');
+      const newName = input.value.trim();
+      if (!newName) return;
+
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'channels', currentRoomId), {
+          id: currentRoomId,
+          name: newName,
+          updatedAt: Date.now()
+        }, { merge: true });
+        toggleModal('rename-channel-modal', false);
+        pushAppNotification(`✏️ チャンネル名を「${newName}」に変更しました`);
+      } catch (e) {
+        console.error(e);
+        pushAppNotification('⚠️ チャンネル名の変更に失敗しました');
+      }
+    };
+
+    window.removeFriend = function(reqId, friendName) {
+      document.getElementById('confirm-modal-title').innerText = "フレンドの削除";
+      document.getElementById('confirm-modal-msg').innerText = `${friendName} さんをフレンド一覧から削除しますか？`;
+      
+      const okBtn = document.getElementById('confirm-modal-ok-btn');
+      okBtn.onclick = async () => {
+        try {
+          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friend_requests', reqId));
+          toggleModal('confirm-modal', false);
+          pushAppNotification(`🗑️ ${friendName} さんを削除しました`);
+          if (currentRoomType === 'dm') {
+            selectRoom('general', 'channel');
+          }
+        } catch (e) {
+          console.error(e);
+          pushAppNotification('⚠️ 削除処理に失敗しました');
+        }
+      };
+
+      toggleModal('confirm-modal', true);
+    };
 
     function renderAvatarGrid() {
       dom.avatarGrid.innerHTML = '';
@@ -869,53 +943,6 @@
       }
     }
 
-    window.promptAddChannel = async function() {
-      const promptMsg = currentLang === 'ja' ? "新しいチャンネル名を入力してください:" : "Enter new channel name:";
-      const channelName = prompt(promptMsg);
-      if (!channelName || !channelName.trim()) return;
-
-      const trimmed = channelName.trim();
-      const channelId = 'channel_' + Date.now();
-
-      try {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'channels', channelId), {
-          id: channelId,
-          name: trimmed,
-          icon: 'fa-hashtag',
-          createdAt: Date.now()
-        });
-        selectRoom(channelId, 'channel');
-        pushAppNotification(`📢 チャンネル「${trimmed}」を作成しました`, 'success');
-      } catch (e) {
-        console.error(e);
-        alert(currentLang === 'ja' ? "チャンネルの追加に失敗しました。" : "Failed to create channel.");
-      }
-    };
-
-    window.promptRenameChannel = async function() {
-      if (currentRoomType !== 'channel') return;
-      const room = rooms.find(r => r.id === currentRoomId);
-      const currentName = room ? room.name : '';
-
-      const promptMsg = currentLang === 'ja' ? "変更後のチャンネル名を入力してください:" : "Enter new name for this channel:";
-      const newName = prompt(promptMsg, currentName);
-      if (!newName || !newName.trim() || newName.trim() === currentName) return;
-
-      const trimmed = newName.trim();
-
-      try {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'channels', currentRoomId), {
-          id: currentRoomId,
-          name: trimmed,
-          updatedAt: Date.now()
-        }, { merge: true });
-        pushAppNotification(`✏️️ チャンネル名を「${trimmed}」に変更しました`, 'success');
-      } catch (e) {
-        console.error(e);
-        alert(currentLang === 'ja' ? "チャンネル名の変更に失敗しました。" : "Failed to rename channel.");
-      }
-    };
-
     window.switchAuthTab = function(mode) {
       authMode = mode;
       dom.authErrorMsg.classList.add('hidden');
@@ -966,29 +993,13 @@
       location.reload();
     };
 
-    window.toggleSettingsModal = function(show) {
-      if (show) {
-        dom.settingsUsernameInput.value = currentDisplayName;
-        dom.settingsUseridInput.value = currentUserTag;
-        dom.settingsLanguageSelect.value = currentLang;
-        selectedAvatarTemp = currentAvatarIcon;
-        renderAvatarGrid();
-        dom.settingsModal.classList.remove('hidden');
-        dom.settingsModal.classList.add('flex');
-        setTimeout(() => dom.settingsModal.classList.remove('opacity-0'), 50);
-      } else {
-        dom.settingsModal.classList.add('opacity-0');
-        setTimeout(() => { dom.settingsModal.classList.add('hidden'); dom.settingsModal.classList.remove('flex'); }, 300);
-      }
-    };
-
     window.saveSettings = async function() {
       const newName = dom.settingsUsernameInput.value.trim();
       const newTag = dom.settingsUseridInput.value.trim().replace(/^@/, '');
       const selectedLang = dom.settingsLanguageSelect.value;
       
       if (!newName || !newTag || !currentUser) {
-        alert(currentLang === 'ja' ? '名前とユーザーIDを入力してください' : 'Please fill in display name and user ID');
+        pushAppNotification('⚠️ 名前とユーザーIDを入力してください');
         return;
       }
       
@@ -1010,132 +1021,34 @@
         dom.userAvatarDisplay.innerHTML = `<i class="fas ${currentAvatarIcon}"></i>`;
         
         applyLanguage(selectedLang);
-        toggleSettingsModal(false);
-        pushAppNotification('⚙️ アカウント設定を保存しました', 'success');
+        toggleModal('settings-modal', false);
+        pushAppNotification('⚙️ アカウント設定を保存しました');
       } catch(e) {
         console.error(e);
-        alert(currentLang === 'ja' ? '保存に失敗しました' : 'Failed to save settings');
+        pushAppNotification('⚠️ 保存に失敗しました');
       }
     };
 
-    // Prompt user to send friend request via unique ID
-    window.promptAddContact = async function() {
-      const promptMsg = currentLang === 'ja' 
-        ? "追加したい相手の「ユーザーID（例: my_id）」を入力してください:" 
-        : "Enter the User ID of the contact you want to add:";
-      const targetTagInput = prompt(promptMsg);
-      if (!targetTagInput || !targetTagInput.trim()) return;
-
-      const searchTag = targetTagInput.trim().replace(/^@/, '');
-      if (searchTag === currentUserTag) {
-        alert(currentLang === 'ja' ? "自分自身を追加することはできません。" : "You cannot add yourself.");
-        return;
-      }
-
-      try {
-        const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-        const snapshot = await getDocs(usersRef);
-        let foundUser = null;
-        
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          if (data.userTag === searchTag || data.uid === searchTag) {
-            foundUser = data;
-          }
-        });
-
-        if (!foundUser) {
-          alert(currentLang === 'ja' 
-            ? `ユーザーID「@${searchTag}」が見つかりませんでした。\nIDが正しいか確認してください。` 
-            : `User ID "@${searchTag}" was not found.`);
-          return;
-        }
-
-        // Check if already friends or already sent request
-        const reqRef = collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests');
-        const reqSnap = await getDocs(reqRef);
-        let existing = false;
-        
-        reqSnap.forEach(docSnap => {
-          const r = docSnap.data();
-          if ((r.fromUid === currentUser.uid && r.toUid === foundUser.uid) ||
-              (r.fromUid === foundUser.uid && r.toUid === currentUser.uid)) {
-            existing = true;
-          }
-        });
-
-        if (existing) {
-          alert(currentLang === 'ja' 
-            ? "既に友達リクエストを送信済み、またはフレンドです。" 
-            : "Friend request already sent or already friends.");
-          return;
-        }
-
-        // Send Friend Request (Status: pending)
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests'), {
-          fromUid: currentUser.uid,
-          fromName: currentDisplayName,
-          fromTag: currentUserTag,
-          fromAvatar: currentAvatarIcon,
-          toUid: foundUser.uid,
-          toName: foundUser.displayName || 'User',
-          toTag: foundUser.userTag || '',
-          toAvatar: foundUser.avatarIcon || 'fa-user',
-          status: 'pending',
-          timestamp: Date.now()
-        });
-
-        pushAppNotification(`✉️ ${foundUser.displayName} さんに友達追加依頼を送信しました`, 'info');
-      } catch (e) {
-        console.error(e);
-        alert(currentLang === 'ja' ? "リクエストの送信に失敗しました。" : "Failed to send request.");
-      }
-    };
-
-    // Accept Request (☑)
     window.acceptRequest = async function(reqId) {
       try {
         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friend_requests', reqId), {
           status: 'accepted',
           acceptedAt: Date.now()
         });
-        pushAppNotification('🤝 友達リクエストを承認しました', 'success');
+        pushAppNotification('🤝 友達リクエストを承認しました');
       } catch (e) {
         console.error(e);
-        alert("エラーが発生しました");
+        pushAppNotification('⚠️ エラーが発生しました');
       }
     };
 
-    // Reject Request (☒)
     window.rejectRequest = async function(reqId) {
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friend_requests', reqId));
-        pushAppNotification('❌ 友達リクエストを拒否しました', 'error');
+        pushAppNotification('❌ 友達リクエストを拒否しました');
       } catch (e) {
         console.error(e);
-        alert("エラーが発生しました");
-      }
-    };
-
-    // フレンド削除機能
-    window.removeFriend = async function(reqId, friendName) {
-      const confirmMsg = currentLang === 'ja' 
-        ? `${friendName} さんをフレンド一覧から削除しますか？`
-        : `Are you sure you want to remove ${friendName} from your friends?`;
-        
-      if (!confirm(confirmMsg)) return;
-
-      try {
-        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friend_requests', reqId));
-        pushAppNotification(`🗑️ ${friendName} さんをフレンドから削除しました`, 'error');
-        
-        // 削除したフレンドと現在DM中だった場合、一般チャンネルに自動移動
-        if (currentRoomType === 'dm') {
-          selectRoom('general', 'channel');
-        }
-      } catch (e) {
-        console.error(e);
-        alert(currentLang === 'ja' ? "削除処理に失敗しました。" : "Failed to remove friend.");
+        pushAppNotification('⚠️ エラーが発生しました');
       }
     };
 
@@ -1183,7 +1096,7 @@
         
         setupRealtimeListeners();
         selectRoom('general', 'channel');
-        pushAppNotification(`👋 ようこそ、${currentDisplayName} さん！`, 'success');
+        pushAppNotification(`👋 ようこそ、${currentDisplayName} さん！`);
       } else {
         dom.loadingOverlay.classList.add('hidden');
       }
@@ -1216,7 +1129,6 @@
 
       dom.requestsSection.classList.remove('hidden');
       dom.requestBadge.innerText = incomingRequests.length;
-
       const t = i18n[currentLang];
 
       incomingRequests.forEach(req => {
@@ -1232,9 +1144,7 @@
               <p class="text-[10px] text-gray-400 font-mono truncate">@${req.fromTag}</p>
             </div>
           </div>
-          <p class="text-[11px] text-gray-300 mb-2.5 font-medium leading-tight">
-            ${t.reqFrom}
-          </p>
+          <p class="text-[11px] text-gray-300 mb-2.5 font-medium leading-tight">${t.reqFrom}</p>
           <div class="flex gap-1.5">
             <button onclick="acceptRequest('${req.id}')" class="flex-1 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-sm">
               <i class="fas fa-check-square"></i> ${t.acceptBtn}
@@ -1407,13 +1317,12 @@
       onSnapshot(messagesRef, (snapshot) => {
         const newMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // 自分以外の新しいメッセージが届いた場合の通知処理
         if (!isInitialMessagesLoad && newMessages.length > allMessages.length) {
           snapshot.docChanges().forEach(change => {
             if (change.type === 'added') {
               const msg = change.doc.data();
               if (msg.userId !== currentUser.uid) {
-                pushAppNotification(`💬 ${msg.userName}: 「${msg.text}」`, 'info');
+                pushAppNotification(`💬 ${msg.userName}: 「${msg.text}」`);
               }
             }
           });
@@ -1428,16 +1337,13 @@
       const reqRef = collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests');
       onSnapshot(reqRef, (snapshot) => {
         const allReqs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
         const prevReqCount = incomingRequests.length;
-        // Income requests (Pending for current user)
-        incomingRequests = allReqs.filter(r => r.toUid === currentUser.uid && r.status === 'pending');
         
+        incomingRequests = allReqs.filter(r => r.toUid === currentUser.uid && r.status === 'pending');
         if (incomingRequests.length > prevReqCount && prevReqCount !== 0) {
-          pushAppNotification('🔔 新しい友達リクエストが届きました', 'info');
+          pushAppNotification('🔔 新しい友達リクエストが届きました');
         }
 
-        // Accepted friends (both direction)
         acceptedFriends = allReqs.filter(r => (r.fromUid === currentUser.uid || r.toUid === currentUser.uid) && r.status === 'accepted');
 
         renderRequestsList();
@@ -1472,7 +1378,7 @@
         const data = snapshot.data();
         if (data.offer && !isCaller && !pc) {
           showIncomingCallModal(data.callerName || 'Someone');
-          pushAppNotification(`📞 ${data.callerName || 'ユーザー'} から着信がありました`, 'info');
+          pushAppNotification(`📞 ${data.callerName || 'ユーザー'} から着信がありました`);
         }
         if (data.answer && isCaller && pc && pc.remoteDescription === null) {
           await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
